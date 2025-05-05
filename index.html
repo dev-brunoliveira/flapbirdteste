@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flappy Bird Custom - Slow Motion</title>
+  <style>
+    canvas {
+      display: block;
+      margin: auto;
+      background: #70c5ce;
+    }
+    body {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="320" height="480"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const GRAVITY = 0.3;  // Menor gravidade para pulo mais lento
+    const JUMP = -5;      // Pulo mais fraco
+    let frames = 0;
+    let gameStarted = false;
+    let score = 0;
+
+    const birdImg = new Image();
+    birdImg.src = "bird.png";
+
+    const bird = {
+      x: 50,
+      y: 150,
+      w: 34,
+      h: 24,
+      velocity: 0,
+      draw() {
+        ctx.drawImage(birdImg, this.x, this.y, this.w, this.h);
+      },
+      update() {
+        this.velocity += GRAVITY;
+        this.y += this.velocity;
+      },
+      jump() {
+        this.velocity = JUMP;
+        const sound = new Audio("flap.wav");
+        sound.playbackRate = 0.5;  // Som mais lento
+        sound.play().catch(() => {});
+      },
+      reset() {
+        this.y = 150;
+        this.velocity = 0;
+      }
+    };
+
+    const pipes = {
+      position: [],
+      width: 52,
+      height: 320,
+      gap: 100,
+      topImg: new Image(),
+      bottomImg: new Image(),
+      draw() {
+        for (let i = 0; i < this.position.length; i++) {
+          let p = this.position[i];
+          ctx.drawImage(this.topImg, p.x, p.y);
+          ctx.drawImage(this.bottomImg, p.x, p.y + this.height + this.gap);
+        }
+      },
+      update() {
+        if (frames % 100 === 0) {
+          this.position.push({
+            x: canvas.width,
+            y: -Math.floor(Math.random() * 150)
+          });
+        }
+
+        for (let i = 0; i < this.position.length; i++) {
+          let p = this.position[i];
+          p.x -= 1;  // Canos movendo mais devagar
+
+          if (
+            bird.x + bird.w >= p.x &&
+            bird.x <= p.x + this.width &&
+            (bird.y <= p.y + this.height ||
+             bird.y + bird.h >= p.y + this.height + this.gap)
+          ) {
+            endGame();
+          }
+
+          if (p.x + this.width < 0) {
+            this.position.shift();
+            score++;
+          }
+        }
+      },
+      reset() {
+        this.position = [];
+      }
+    };
+
+    pipes.topImg.src = "https://raw.githubusercontent.com/sourabhv/FlapPyBird/master/assets/sprites/pipe-green.png";
+    pipes.bottomImg.src = "https://raw.githubusercontent.com/sourabhv/FlapPyBird/master/assets/sprites/pipe-green.png";
+
+    const floor = {
+      y: canvas.height - 50,
+      draw() {
+        ctx.fillStyle = "#ded895";
+        ctx.fillRect(0, this.y, canvas.width, 50);
+      }
+    };
+
+    function drawScore() {
+      ctx.fillStyle = "#fff";
+      ctx.font = "24px Arial";
+      ctx.fillText("Pontos: " + score, 10, 30);
+    }
+
+    function drawMenu() {
+      ctx.fillStyle = "#000";
+      ctx.font = "26px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Clique para começar", canvas.width / 2, canvas.height / 2);
+      ctx.textAlign = "start";
+    }
+
+    function resetGame() {
+      bird.reset();
+      pipes.reset();
+      score = 0;
+      frames = 0;
+      gameStarted = false;
+    }
+
+    function endGame() {
+      resetGame();
+    }
+
+    function loop() {
+      frames++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (gameStarted) {
+        bird.update();
+        pipes.update();
+        pipes.draw();
+        drawScore();
+
+        if (bird.y + bird.h >= floor.y) {
+          endGame();
+        }
+      } else {
+        drawMenu();
+      }
+
+      bird.draw();
+      floor.draw();
+
+      requestAnimationFrame(loop);
+    }
+
+    function handleJump() {
+      if (!gameStarted) {
+        gameStarted = true;
+      }
+      bird.jump();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space") {
+        handleJump();
+      }
+    });
+
+    canvas.addEventListener("mousedown", () => {
+      handleJump();
+    });
+
+    loop();
+  </script>
+</body>
+</html>
