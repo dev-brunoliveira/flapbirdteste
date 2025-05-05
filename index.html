@@ -2,7 +2,6 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Flappy Bird Custom - Slow Motion</title>
   <style>
     canvas {
@@ -12,12 +11,11 @@
     }
     body {
       margin: 0;
-      overflow: hidden; /* Impede o scroll da página */
     }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
+  <canvas id="gameCanvas" width="320" height="480"></canvas>
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
@@ -138,15 +136,6 @@
     function endGame() {
       resetGame();
     }
-
-    function resizeCanvas() {
-      // Ajuste do tamanho do canvas baseado nas dimensões da janela
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();  // Inicializa o tamanho do canvas
 
     function loop() {
       frames++;
